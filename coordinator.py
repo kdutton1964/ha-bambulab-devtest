@@ -30,19 +30,22 @@ class BambuCoordinator(DataUpdateCoordinator[BambuDevice]):
         async def listen() -> None:
             """Listen for state changes via WebSocket."""
             try:
+                LOGGER.debug("Connecting to Bambu")
                 await self.bambu.connect()
             except:
-                self.logger.info("error")
+                LOGGER.error("error")
                 if self.unsub:
                     self.unsub()
                     self.unsub = None
                 return
 
             try:
+                LOGGER.debug("Initialising MQTT Subscription")
                 await self.bambu.subscribe(callback=handle_callback)
             except:
                 self.logger.error("error")
 
+            LOGGER.debug("Disconnecting from Bambu")
             await self.bambu.disconnect()
             if self.unsub:
                 self.unsub()
@@ -50,6 +53,7 @@ class BambuCoordinator(DataUpdateCoordinator[BambuDevice]):
 
         async def close_websocket(_: Event) -> None:
             """Close WebSocket connection."""
+            LOGGER.debug("Closing Connection")
             self.unsub = None
             await self.bambu.disconnect()
 

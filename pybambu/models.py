@@ -81,8 +81,9 @@ class Network:
             wifi_signal=data["print"].get("wifi_signal")
         )
 
-    def update_from_dict(self,data):
+    def update_from_dict(self, data):
         self.wifi_signal = data["print"].get("wifi_signal", self.wifi_signal)
+
 
 class Device:
     def __init__(self, data):

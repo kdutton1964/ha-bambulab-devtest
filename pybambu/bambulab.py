@@ -31,12 +31,12 @@ class BambuLab:
     _device: Device | None = None
 
     def on_connect(self, client, userdata, flags, rc):
-        print("Connected with result code " + str(rc))
+        LOGGER.debug("Connected with result code " + str(rc))
 
         if rc == 0:
-            print("Connected to MQTT Broker!")
+            LOGGER.debug("Connected to MQTT Broker!")
         else:
-            print("Failed to connect, return code %d\n", rc)
+            LOGGER.debug("Failed to connect, return code %d\n", rc)
 
     async def connect(self):
         """ Connect to the MQTT Server of a Bambu Printer
@@ -44,24 +44,25 @@ class BambuLab:
         Raises:
             BambuLabConnectionError: Error occurred while communicating with Bambu Printer
         """
-
+        
+        LOGGER.debug(f"Connecting MQTT Server on: {self.host}")
         self._client = mqtt_client.Client()
         self._client.on_connect = self.on_connect
         self._client.connect(self.host, 1883)
         self._client.loop_start()
-        LOGGER.debug(f"Connecting MQTT Server on: {self.host}")
         return self._client
 
     async def subscribe(self, callback):
         def on_message(client, userdata, msg):
+            LOGGER.debug("Subscribe received message")
             if self._device is None:
                 self._device = Device(json.loads(msg.payload))
 
             self._device.update_from_dict(data=json.loads(msg.payload))
-            LOGGER.debug(f'Device Update: ${self._device.__dict__}')
-            callback(self._device)
+            LOGGER.debug('Device Update')
+            return callback(self._device)
 
-        LOGGER.debug("Subscribe")
+        LOGGER.debug("Subscribing ")
         self._client.on_message = on_message
         self._client.subscribe("device/#")
         return

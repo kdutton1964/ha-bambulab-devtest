@@ -64,17 +64,13 @@ async def async_setup_entry(
 ) -> None:
     """Set up Evonic sensor based on a config entry."""
     coordinator: BambuCoordinator = hass.data[DOMAIN][entry.entry_id]
+    LOGGER.debug(f"Async Setup Entry Data: ${coordinator.data}")
     async_add_entities(
         BambuSensorEntity(coordinator, description)
         for description in SENSORS
         if description.exists_fn(coordinator.data)
     )
 
-
-
-def get_timestamp(time):
-    datetime_object = dt.datetime.strptime(time, '%H:%M:%S')
-    return dt.datetime.combine(date=dt.date.today(), time=datetime_object.time(), tzinfo=dt.datetime.now().astimezone().tzinfo)
 
 class BambuSensorEntity(BambuEntity, SensorEntity):
     """Defines a Evonic sensor entity."""
