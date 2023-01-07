@@ -33,8 +33,8 @@ class BambuLabConfigFlow(ConfigFlow, domain=DOMAIN):
                 device = await self._async_get_device(user_input[CONF_HOST])
                 LOGGER.debug(f"Config Flow connected to Device: ${device.__dict__}")
 
-            except:
-                LOGGER.error("Cannot Connect")
+            except Exception as error:
+                LOGGER.error(f"Cannot Connect {error}")
                 errors["base"] = "cannot_connect"
             else:
                 # TODO:  Need to figure out the best way to set a unique ID
@@ -69,5 +69,6 @@ class BambuLabConfigFlow(ConfigFlow, domain=DOMAIN):
             LOGGER.debug("Async get device connected")
             await bambu.subscribe(callback)
             return device
-        except:            
+        except Exception as error:
+            LOGGER.error(error)
             return None

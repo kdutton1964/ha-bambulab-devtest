@@ -32,8 +32,8 @@ class BambuCoordinator(DataUpdateCoordinator[BambuDevice]):
             try:
                 LOGGER.debug("Connecting to Bambu")
                 await self.bambu.connect()
-            except:
-                LOGGER.error("error")
+            except Exception as error:
+                LOGGER.error(f"error {error}")
                 if self.unsub:
                     self.unsub()
                     self.unsub = None
@@ -42,8 +42,8 @@ class BambuCoordinator(DataUpdateCoordinator[BambuDevice]):
             try:
                 LOGGER.debug("Initialising MQTT Subscription")
                 await self.bambu.subscribe(callback=handle_callback)
-            except:
-                self.logger.error("error")
+            except Exception as errpr:
+                self.logger.error(f"error {errpr}")
 
             LOGGER.debug("Disconnecting from Bambu")
             await self.bambu.disconnect()
