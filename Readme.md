@@ -4,9 +4,9 @@ This is a working repo for a Bambu Lab X1C Integration into Home Assistant.  It 
 
 ## Contribution
 
-1) Create a folder with `custom_components` called `bambulab`
+1) Create a folder with `custom_components` called `bambu_lab`
 2) Fork this repo
-3) Clone your fork into the `bambulab` folder: `git clone <url> .`
+3) Clone your fork into the `bambu_lab` folder: `git clone <url> .`
 
 ## Updates
 
