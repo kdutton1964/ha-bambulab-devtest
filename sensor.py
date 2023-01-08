@@ -64,7 +64,7 @@ async def async_setup_entry(
 ) -> None:
     """Set up Evonic sensor based on a config entry."""
     coordinator: BambuCoordinator = hass.data[DOMAIN][entry.entry_id]
-    LOGGER.debug(f"Async Setup Entry Data: ${coordinator.data}")
+    LOGGER.debug(f"Async Setup Entry Data: {coordinator.data}")
     async_add_entities(
         BambuSensorEntity(coordinator, description)
         for description in SENSORS

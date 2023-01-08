@@ -56,19 +56,7 @@ class BambuLabConfigFlow(ConfigFlow, domain=DOMAIN):
 
     async def _async_get_device(self, host):
         bambu = BambuLab(host)
-        device = None
+        device = await bambu.get_device()
+        LOGGER.debug(f"async get device: {device}")
+        return device
 
-        async def callback(cb):
-            LOGGER.debug(f'Connected: ${cb}')
-            device = cb
-            await bambu.disconnect()
-
-        try:
-            LOGGER.debug("Async Get Device....")
-            await bambu.connect()
-            LOGGER.debug("Async get device connected")
-            await bambu.subscribe(callback)
-            return device
-        except Exception as error:
-            LOGGER.error(error)
-            return None

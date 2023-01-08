@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import json
-
+import asyncio
 import logging
 
 from dataclasses import dataclass
@@ -44,7 +44,7 @@ class BambuLab:
         Raises:
             BambuLabConnectionError: Error occurred while communicating with Bambu Printer
         """
-        
+
         LOGGER.debug(f"Connecting MQTT Server on: {self.host}")
         self._client = mqtt_client.Client()
         self._client.on_connect = self.on_connect
@@ -73,8 +73,25 @@ class BambuLab:
             LOGGER.debug("Cannot disconnect from MQTT Server, as no client connection exists")
             return
 
-        await self._client.loop_stop()
-        await self._client.disconnect()
+        LOGGER.debug("Disconnecting....")
+        self._client.loop_stop()
+        self._client.disconnect()
+        LOGGER.debug("Disconnected")
+        return
+
+    async def get_device(self):
+        device = None
+
+        def new_update(cb):
+            nonlocal device
+            LOGGER.debug(f"new update {cb.__dict__}")
+            device = cb
+
+        await self.connect()
+        asyncio.create_task(self.subscribe(callback=new_update))
+        await asyncio.sleep(5)
+        await self.disconnect()
+        return device
 
     async def __aenter__(self):
         """Async enter.

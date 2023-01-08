@@ -24,7 +24,7 @@ class BambuCoordinator(DataUpdateCoordinator[BambuDevice]):
     @callback
     def use_mqtt(self) -> None:
         def handle_callback(data):
-            LOGGER.debug(f("Callback data: ${data}"))
+            LOGGER.debug(f"Callback data: ${data}")
             self._async_update_data(data)
 
         async def listen() -> None:
