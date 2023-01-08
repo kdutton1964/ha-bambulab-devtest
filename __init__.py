@@ -14,6 +14,8 @@ PLATFORMS = (
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Bambu from a config entry."""
+
+    LOGGER.debug(f"Start async_setup_entry {hass}")
     coordinator = BambuCoordinator(hass, entry=entry)
     await coordinator.async_config_entry_first_refresh()
 
