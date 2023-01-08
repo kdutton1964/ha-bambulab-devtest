@@ -52,7 +52,7 @@ SENSORS: tuple[BambuSensorEntityDescription, ...] = (
         device_class=SensorDeviceClass.SIGNAL_STRENGTH,
         state_class=SensorStateClass.MEASUREMENT,
         entity_category=EntityCategory.DIAGNOSTIC,
-        value_fn=lambda device: device.network.signal_strength
+        value_fn=lambda device: device.network.wifi_signal
     ),
 )
 
@@ -62,7 +62,7 @@ async def async_setup_entry(
         entry: ConfigEntry,
         async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up Evonic sensor based on a config entry."""
+    """Set up Bambu sensor based on a config entry."""
     coordinator: BambuCoordinator = hass.data[DOMAIN][entry.entry_id]
     LOGGER.debug(f"Async Setup Entry Data: {coordinator.data}")
     async_add_entities(
@@ -73,7 +73,7 @@ async def async_setup_entry(
 
 
 class BambuSensorEntity(BambuEntity, SensorEntity):
-    """Defines a Evonic sensor entity."""
+    """Defines a Bambu sensor entity."""
 
     entity_description: BambuSensorEntityDescription
 
@@ -86,7 +86,7 @@ class BambuSensorEntity(BambuEntity, SensorEntity):
         super().__init__(coordinator=coordinator)
         self.entity_description = description
         # TODO: Set unique key - use serial number 
-        self._attr_unique_id = f"08:e9:f6:df:e4:94_{description.key}"
+        self._attr_unique_id = f"12:e9:f1:dz:e6:69_{description.key}"
 
     @property
     def native_value(self) -> datetime | StateType:

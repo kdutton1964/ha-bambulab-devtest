@@ -20,9 +20,9 @@ class BambuCoordinator(DataUpdateCoordinator[BambuDevice]):
         self.bambu = BambuLab(
             entry.data[CONF_HOST]
         )
-        self.use_mqtt()
-        self.unsub: CALLBACK_TYPE | None = None
+        # self.unsub: CALLBACK_TYPE | None = None
         super().__init__(hass, LOGGER, name=DOMAIN, update_interval=SCAN_INTERVAL)
+        self.use_mqtt()
 
     @callback
     def use_mqtt(self) -> None:
@@ -36,36 +36,33 @@ class BambuCoordinator(DataUpdateCoordinator[BambuDevice]):
                 await self.bambu.subscribe(callback=self.async_set_updated_data)
             except Exception as error:
                 LOGGER.error(f"Listen Error {error}")
-                if self.unsub:
-                    self.unsub()
-                    self.unsub = None
+                # if self.unsub:
+                #     self.unsub()
+                #     self.unsub = None
                 return
 
             LOGGER.debug("Disconnecting from Bambu")
             await self.bambu.disconnect()
-            if self.unsub:
-                self.unsub()
-                self.unsub = None
+            # if self.unsub:
+            #     self.unsub()
+            #     self.unsub = None
 
-        async def close_websocket(_: Event) -> None:
-            """Close WebSocket connection."""
+        async def close_mqtt_connection(_: Event) -> None:
+            """Close MQTT connection."""
             LOGGER.debug("Closing Connection")
-            self.unsub = None
+            # self.unsub = None
             await self.bambu.disconnect()
 
         # Clean disconnect WebSocket on Home Assistant shutdown
-        self.unsub = self.hass.bus.async_listen_once(
-            EVENT_HOMEASSISTANT_STOP, close_websocket
+        self.hass.bus.async_listen_once(
+            EVENT_HOMEASSISTANT_STOP, close_mqtt_connection
         )
 
         asyncio.create_task(listen())
 
-    # async def _async_update_data(self):
-    #     """Manually fetches data.  Probably not needed"""
-    #
-    #     if not self.unsub:
-    #         self.use_mqtt()
-    #
-    #     return
+    async def _async_update_data(self):
+        """Manually fetches data.  Probably not needed"""
 
-
+        if not self.bambu.connected:
+            self.use_mqtt()
+        return

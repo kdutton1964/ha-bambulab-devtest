@@ -29,12 +29,18 @@ class BambuLab:
     _client: mqtt_client.Client | None = None
     _close_session: bool = False
     _device: Device | None = None
+    _connected: bool = False
+
+    @property
+    def connected(self):
+        return self._connected
 
     def on_connect(self, client, userdata, flags, rc):
         LOGGER.debug("Connected with result code " + str(rc))
 
         if rc == 0:
             LOGGER.debug("Connected to MQTT Broker!")
+            self._connected = True
         else:
             LOGGER.debug("Failed to connect, return code %d\n", rc)
 
@@ -76,6 +82,7 @@ class BambuLab:
         LOGGER.debug("Disconnecting....")
         self._client.loop_stop()
         self._client.disconnect()
+        self._connected = False
         LOGGER.debug("Disconnected")
         return
 

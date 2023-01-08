@@ -12,7 +12,7 @@ class BambuEntity(CoordinatorEntity[BambuCoordinator]):
     @property
     def device_info(self) -> DeviceInfo:
         return DeviceInfo(
-            identifiers={(DOMAIN, "08:e9:f6:df:e4:94")},
+            identifiers={(DOMAIN, "12:e3:f4:df:e5:67")},
             name="X1C",
             manufacturer=BRAND,
             model="X1C",
