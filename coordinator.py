@@ -20,7 +20,7 @@ class BambuCoordinator(DataUpdateCoordinator[BambuDevice]):
         self.bambu = BambuLab(
             entry.data[CONF_HOST]
         )
-        # self.unsub: CALLBACK_TYPE | None = None
+        self.unsub: CALLBACK_TYPE | None = None
         super().__init__(hass, LOGGER, name=DOMAIN, update_interval=SCAN_INTERVAL)
         self.use_mqtt()
 
@@ -36,25 +36,25 @@ class BambuCoordinator(DataUpdateCoordinator[BambuDevice]):
                 await self.bambu.subscribe(callback=self.async_set_updated_data)
             except Exception as error:
                 LOGGER.error(f"Listen Error {error}")
-                # if self.unsub:
-                #     self.unsub()
-                #     self.unsub = None
+                if self.unsub:
+                    self.unsub()
+                    self.unsub = None
                 return
 
             LOGGER.debug("Disconnecting from Bambu")
             await self.bambu.disconnect()
-            # if self.unsub:
-            #     self.unsub()
-            #     self.unsub = None
+            if self.unsub:
+                self.unsub()
+                self.unsub = None
 
         async def close_mqtt_connection(_: Event) -> None:
             """Close MQTT connection."""
             LOGGER.debug("Closing Connection")
-            # self.unsub = None
+            self.unsub = None
             await self.bambu.disconnect()
 
         # Clean disconnect WebSocket on Home Assistant shutdown
-        self.hass.bus.async_listen_once(
+        self.unsub = self.hass.bus.async_listen_once(
             EVENT_HOMEASSISTANT_STOP, close_mqtt_connection
         )
 
@@ -63,6 +63,6 @@ class BambuCoordinator(DataUpdateCoordinator[BambuDevice]):
     async def _async_update_data(self):
         """Manually fetches data.  Probably not needed"""
 
-        if not self.bambu.connected:
+        if not self.bambu.connected and not self.unsub:
             self.use_mqtt()
         return

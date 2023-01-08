@@ -33,16 +33,17 @@ class BambuLab:
 
     @property
     def connected(self):
+        LOGGER.debug(f"connected() {self._connected}")
         return self._connected
 
     def on_connect(self, client, userdata, flags, rc):
-        LOGGER.debug("Connected with result code " + str(rc))
+        LOGGER.debug("on_connect() Connected with result code " + str(rc))
 
         if rc == 0:
-            LOGGER.debug("Connected to MQTT Broker!")
+            LOGGER.debug("on_connect() Connected to MQTT Broker!")
             self._connected = True
         else:
-            LOGGER.debug("Failed to connect, return code %d\n", rc)
+            LOGGER.debug("on_connect() Failed to connect, return code %d\n", rc)
 
     async def connect(self):
         """ Connect to the MQTT Server of a Bambu Printer
@@ -51,7 +52,7 @@ class BambuLab:
             BambuLabConnectionError: Error occurred while communicating with Bambu Printer
         """
 
-        LOGGER.debug(f"Connecting MQTT Server on: {self.host}")
+        LOGGER.debug(f"connect() Connecting MQTT Server on: {self.host}")
         self._client = mqtt_client.Client()
         self._client.on_connect = self.on_connect
         self._client.connect(self.host, 1883)
@@ -60,18 +61,18 @@ class BambuLab:
 
     async def subscribe(self, callback):
         def on_message(client, userdata, msg):
-            LOGGER.debug("Subscribe received message")
+            LOGGER.debug("subcribe() on_message() received message")
             if self._device is None:
                 self._device = Device(json.loads(msg.payload))
 
             self._device.update_from_dict(data=json.loads(msg.payload))
-            LOGGER.debug('Device Update')
+            LOGGER.debug('subscribe() on_message() Device Update')
             return callback(self._device)
 
-        LOGGER.debug("Subscribing ")
+        LOGGER.debug("subscribe() Subscribing ")
         self._client.on_message = on_message
         self._client.subscribe("device/#")
-        return
+        # return
 
     async def disconnect(self):
         """Disconnect from the MQTT Server of a Bambu Printer."""
@@ -79,11 +80,11 @@ class BambuLab:
             LOGGER.debug("Cannot disconnect from MQTT Server, as no client connection exists")
             return
 
-        LOGGER.debug("Disconnecting....")
+        LOGGER.debug("disconnect() Disconnecting....")
         self._client.loop_stop()
         self._client.disconnect()
         self._connected = False
-        LOGGER.debug("Disconnected")
+        LOGGER.debug("disconnect() Disconnected")
         return
 
     async def get_device(self):
@@ -91,12 +92,14 @@ class BambuLab:
 
         def new_update(cb):
             nonlocal device
-            LOGGER.debug(f"new update {cb.__dict__}")
+            LOGGER.debug(f"get_device() new_update() {cb.__dict__}")
             device = cb
 
+        LOGGER.debug("get_device() Connecting")
         await self.connect()
         asyncio.create_task(self.subscribe(callback=new_update))
         await asyncio.sleep(5)
+        LOGGER.debug("get_device() Disconnecting")
         await self.disconnect()
         return device
 
