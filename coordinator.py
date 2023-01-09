@@ -7,7 +7,7 @@ from homeassistant.core import CALLBACK_TYPE, Event, HomeAssistant, callback
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from .pybambu import Device as BambuDevice, BambuLab
+from .pybambu import Device as BambuDevice, BambuLab, BambuLabError, BambuLabConnectionClosed
 
 from .const import DOMAIN, LOGGER, SCAN_INTERVAL
 
@@ -29,17 +29,26 @@ class BambuCoordinator(DataUpdateCoordinator[BambuDevice]):
 
         async def listen() -> None:
             """Listen for state changes via WebSocket."""
+
             try:
                 LOGGER.debug("Connecting to Bambu")
                 await self.bambu.connect()
-                LOGGER.debug("Subscribing to Bambu")
-                await self.bambu.subscribe(callback=self.async_set_updated_data)
-            except Exception as error:
-                LOGGER.error(f"Listen Error {error}")
+            except BambuLabError as err:
+                LOGGER.error(f"use_mqtt() connect error {err}")
                 if self.unsub:
-                    self.unsub()
+                    self.unsub
                     self.unsub = None
                 return
+
+            try:
+                LOGGER.debug("Subscribing to Bambu")
+                await self.bambu.subscribe(callback=self.async_set_updated_data)
+            except BambuLabConnectionClosed as error:
+                LOGGER.error(f"use_mqtt() subscription error {error}")
+            except BambuLabError as err:
+                self.async_update_listeners()
+                LOGGER.error(err)
+
 
             LOGGER.debug("Disconnecting from Bambu")
             await self.bambu.disconnect()
@@ -63,6 +72,10 @@ class BambuCoordinator(DataUpdateCoordinator[BambuDevice]):
     async def _async_update_data(self):
         """Manually fetches data.  Probably not needed"""
 
+        LOGGER.debug("Manually update data")
+
         if not self.bambu.connected and not self.unsub:
+            LOGGER.debug("Not Connected")
             self.use_mqtt()
         return
+

@@ -12,8 +12,8 @@ class Sensors:
     nozzle_target_temperature: int
     nozzle_temperature: int
     aux_fan_speed: str
-    big_fan2_speed: str
-    cooling_fan_speed: str
+    chamber_fan_speed: str
+    hotend_fan_speed: str
     heatbreak_fan_speed: str
 
     @staticmethod
@@ -24,10 +24,10 @@ class Sensors:
             chamber_temperature=data["print"].get("chamber_temper"),
             nozzle_target_temperature=data["print"].get("nozzle_target_temper"),
             nozzle_temperature=data["print"].get("nozzle_temper"),
-            aux_fan_speed=data["print"].get("big_fan1_speed"),
-            big_fan2_speed=data["print"].get("big_fan2_speed"),
-            cooling_fan_speed=data["print"].get("cooling_fan_speed"),
-            heatbreak_fan_speed=data["print"].get("heatbreak_fan_speed"),
+            aux_fan_speed=fan_speed_to_percentage(data["print"].get("big_fan1_speed")),
+            chamber_fan_speed=fan_speed_to_percentage(data["print"].get("big_fan2_speed")),
+            hotend_fan_speed=fan_speed_to_percentage(data["print"].get("cooling_fan_speed")),
+            heatbreak_fan_speed=fan_speed_to_percentage(data["print"].get("heatbreak_fan_speed")),
         )
 
     def update_from_dict(self, data):
@@ -36,10 +36,10 @@ class Sensors:
         self.chamber_temperature = data["print"].get("chamber_temper", self.chamber_temperature)
         self.nozzle_target_temperature = data["print"].get("nozzle_target_temper", self.nozzle_target_temperature)
         self.nozzle_temperature = data["print"].get("nozzle_temper", self.nozzle_temperature)
-        self.aux_fan_speed = data["print"].get("big_fan1_speed", self.aux_fan_speed)
-        self.big_fan2_speed = data["print"].get("big_fan2_speed", self.big_fan2_speed)
-        self.cooling_fan_speed = data["print"].get("cooling_fan_speed", self.cooling_fan_speed)
-        self.heatbreak_fan_speed = data["print"].get("cooling_fan_speed", self.heatbreak_fan_speed)
+        self.aux_fan_speed = fan_speed_to_percentage(data["print"].get("big_fan1_speed", self.aux_fan_speed))
+        self.chamber_fan_speed = fan_speed_to_percentage(data["print"].get("big_fan2_speed", self.chamber_fan_speed))
+        self.hotend_fan_speed = fan_speed_to_percentage(data["print"].get("cooling_fan_speed", self.hotend_fan_speed))
+        self.heatbreak_fan_speed = fan_speed_to_percentage(data["print"].get("cooling_fan_speed", self.heatbreak_fan_speed))
 
 
 @dataclass
@@ -97,3 +97,7 @@ class Device:
             self.file.update_from_dict(data)
             self.network.update_from_dict(data)
         return self
+
+
+def fan_speed_to_percentage(speed) -> int:
+    return round(int(speed) / 15 * 100)

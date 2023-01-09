@@ -89,6 +89,10 @@ class BambuSensorEntity(BambuEntity, SensorEntity):
         self._attr_unique_id = f"12:e9:f1:dz:e6:69_{description.key}"
 
     @property
+    def should_poll(self):
+        return False
+
+    @property
     def native_value(self) -> datetime | StateType:
         """Return the state of the sensor."""
         return self.entity_description.value_fn(self.coordinator.data)

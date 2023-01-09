@@ -57,17 +57,22 @@ class BambuLab:
         self._client.on_connect = self.on_connect
         self._client.connect(self.host, 1883)
         self._client.loop_start()
+        await asyncio.sleep(5)
         return self._client
 
     async def subscribe(self, callback):
         def on_message(client, userdata, msg):
-            LOGGER.debug("subcribe() on_message() received message")
-            if self._device is None:
-                self._device = Device(json.loads(msg.payload))
+            while not self._connected:
+                LOGGER.debug("subcribe() on_message() received message")
+                if self._device is None:
+                    self._device = Device(json.loads(msg.payload))
 
-            self._device.update_from_dict(data=json.loads(msg.payload))
-            LOGGER.debug('subscribe() on_message() Device Update')
-            return callback(self._device)
+                self._device.update_from_dict(data=json.loads(msg.payload))
+                LOGGER.debug('subscribe() on_message() Device Update')
+                return callback(self._device)
+
+        if not self._client or not self._connected:
+            raise BambuLabError(f"Not connected to MQTT Server {self._connected}")
 
         LOGGER.debug("subscribe() Subscribing ")
         self._client.on_message = on_message
