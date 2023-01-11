@@ -7,6 +7,7 @@ This is a working repo for a Bambu Lab X1C Integration into Home Assistant.  It 
 1) Create a folder with `custom_components` called `bambu_lab`
 2) Fork this repo
 3) Clone your fork into the `bambu_lab` folder: `git clone <url> .`
+4) Edit [this line](https://github.com/greghesp/ha-bambulab-devtest/blob/main/sensor.py#L80) with your device serial number from MQTT
 
 ## Updates
 
