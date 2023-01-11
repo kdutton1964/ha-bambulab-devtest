@@ -8,6 +8,6 @@
   "codeowners": ["@greghesp"],
   "iot_class": "local_push",
   "dependencies": ["mqtt"],
-  "mqtt": ["device/#"],
+  "mqtt": ["device/#"]
 }
 

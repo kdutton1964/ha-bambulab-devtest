@@ -33,9 +33,11 @@ class BambuLabSensor(SensorEntity):
             self, description: BambuLabSensorEntityDescription, config_entry: ConfigEntry
     ) -> None:
         """Initialize the sensor."""
-        self.entity_description = description
 
-        slug = slugify(description.key.replace("/", "_"))
+        LOGGER.debug(config_entry)
+        self.config_entry = config_entry
+        self.entity_description = description
+        slug = slugify(description.key.replace(".", "_"))
         self.entity_id = f"sensor.{slug}"
         self._attr_unique_id = f"{config_entry.entry_id}-{slug}"
 
@@ -44,9 +46,9 @@ class BambuLabSensor(SensorEntity):
         """Return the device info."""
         return DeviceInfo(
             identifiers={
-                (DOMAIN, "testing_123123")
+                (DOMAIN, self.config_entry.unique_id)
             },
-            name="Change This",
+            name=self.config_entry.title,
             manufacturer="Bambu Lab",
         )
 
@@ -77,5 +79,5 @@ class BambuLabSensor(SensorEntity):
 
         """ For now, manually add your device serial number below"""
         await mqtt.async_subscribe(
-            self.hass, "device/abc123/report", message_received, 1
+            self.hass, "device/00M00A280103660/report", message_received, 1
         )

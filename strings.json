@@ -6,6 +6,11 @@
     "step": {
       "confirm": {
         "description": "Adding Bambu Lab Printer."
+      },
+      "mqtt_confirm": {
+        "data": {
+          "name": "Custom Device Name"
+        }
       }
     }
   }

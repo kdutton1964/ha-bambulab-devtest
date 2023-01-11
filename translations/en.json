@@ -7,6 +7,12 @@
             "host": "Host"
         },
         "description": "Set up your Bambu Device to integrate with Home Assistant."
+      },
+      "mqtt_confirm": {
+        "data": {
+          "name": "Custom Device Name"
+        },
+        "description": "Set your Bambu Lab Device name"
       }
     },
     "error": {
