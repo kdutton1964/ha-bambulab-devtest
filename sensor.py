@@ -79,5 +79,5 @@ class BambuLabSensor(SensorEntity):
 
         """ For now, manually add your device serial number below"""
         await mqtt.async_subscribe(
-            self.hass, "device/00M00A280103660/report", message_received, 1
+            self.hass, f"device/{self.config_entry.unique_id}/report", message_received, 1
         )

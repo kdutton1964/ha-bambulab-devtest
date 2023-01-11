@@ -19,14 +19,20 @@ from homeassistant.components.sensor import (
     SensorEntityDescription,
     SensorStateClass,
 )
-from homeassistant.util import dt as dt_util
 
 
 def trim_wifi(string):
     return string.replace("dBm", "")
 
+
 def fan_to_percent(speed):
-    return round(int(speed)/15)*100
+    return round(int(speed) / 15) * 100
+
+
+def to_whole(number):
+    if not number:
+        return 0
+    return round(number)
 
 
 @dataclass
@@ -52,6 +58,7 @@ SENSORS: tuple[BambuLabSensorEntityDescription, ...] = (
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         device_class=SensorDeviceClass.TEMPERATURE,
         state_class=SensorStateClass.MEASUREMENT,
+        state=to_whole
     ),
     BambuLabSensorEntityDescription(
         key="print.bed_target_temper",
@@ -59,6 +66,7 @@ SENSORS: tuple[BambuLabSensorEntityDescription, ...] = (
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         device_class=SensorDeviceClass.TEMPERATURE,
         state_class=SensorStateClass.MEASUREMENT,
+        state=to_whole
     ),
     BambuLabSensorEntityDescription(
         key="print.chamber_temper",
@@ -66,6 +74,7 @@ SENSORS: tuple[BambuLabSensorEntityDescription, ...] = (
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         device_class=SensorDeviceClass.TEMPERATURE,
         state_class=SensorStateClass.MEASUREMENT,
+        state=to_whole
     ),
     BambuLabSensorEntityDescription(
         key="print.nozzle_target_temper",
@@ -73,6 +82,7 @@ SENSORS: tuple[BambuLabSensorEntityDescription, ...] = (
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         device_class=SensorDeviceClass.TEMPERATURE,
         state_class=SensorStateClass.MEASUREMENT,
+        state=to_whole
     ),
     BambuLabSensorEntityDescription(
         key="print.nozzle_temper",
@@ -80,6 +90,7 @@ SENSORS: tuple[BambuLabSensorEntityDescription, ...] = (
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         device_class=SensorDeviceClass.TEMPERATURE,
         state_class=SensorStateClass.MEASUREMENT,
+        state=to_whole
     ),
     BambuLabSensorEntityDescription(
         key="print.cooling_fan_speed",
