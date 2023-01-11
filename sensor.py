@@ -1,98 +1,81 @@
+"""Support for Bambu Lab through MQTT."""
 from __future__ import annotations
-
-from typing import Any
-
-from collections.abc import Callable
-from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
-import datetime as dt
-from homeassistant.helpers.typing import StateType
-
+import json
+from homeassistant.components import mqtt
+from homeassistant.components.sensor import SensorEntity
+from homeassistant.config_entries import SOURCE_IMPORT, ConfigEntry
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from .coordinator import BambuCoordinator
+from homeassistant.helpers.issue_registry import IssueSeverity, async_create_issue
+from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
+from homeassistant.util import slugify
+from homeassistant.helpers.entity import DeviceInfo
+
 from .const import DOMAIN, LOGGER
-from .models import BambuEntity
-from .pybambu import Device as BambuDevice
-from homeassistant.const import (
-    POWER_WATT,
-    SIGNAL_STRENGTH_DECIBELS_MILLIWATT)
-
-from homeassistant.components.sensor import (
-    SensorDeviceClass,
-    SensorEntity,
-    SensorEntityDescription,
-    SensorStateClass,
-)
-
-
-@dataclass
-class BambuSensorEntityDescriptionMixin:
-    """Mixin for required keys."""
-
-    value_fn: Callable[[BambuDevice], datetime | StateType]
-
-
-@dataclass
-class BambuSensorEntityDescription(
-    SensorEntityDescription, BambuSensorEntityDescriptionMixin
-):
-    """Describes Bambu sensor entity."""
-
-    exists_fn: Callable[[BambuDevice], bool] = lambda _: True
-
-
-SENSORS: tuple[BambuSensorEntityDescription, ...] = (
-    BambuSensorEntityDescription(
-        key="wifi_signal",
-        name="Wi-Fi Signal",
-        native_unit_of_measurement=SIGNAL_STRENGTH_DECIBELS_MILLIWATT,
-        device_class=SensorDeviceClass.SIGNAL_STRENGTH,
-        state_class=SensorStateClass.MEASUREMENT,
-        entity_category=EntityCategory.DIAGNOSTIC,
-        value_fn=lambda device: device.network.wifi_signal
-    ),
-)
+from .definitions import SENSORS, BambuLabSensorEntityDescription
 
 
 async def async_setup_entry(
-        hass: HomeAssistant,
-        entry: ConfigEntry,
+        _: HomeAssistant,
+        config_entry: ConfigEntry,
         async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up Bambu sensor based on a config entry."""
-    coordinator: BambuCoordinator = hass.data[DOMAIN][entry.entry_id]
-    LOGGER.debug(f"Async Setup Entry Data: {coordinator.data}")
-    async_add_entities(
-        BambuSensorEntity(coordinator, description)
-        for description in SENSORS
-        if description.exists_fn(coordinator.data)
-    )
+    """Set up Bambu Lab sensors from config entry."""
+    async_add_entities(BambuLabSensor(description, config_entry) for description in SENSORS)
 
 
-class BambuSensorEntity(BambuEntity, SensorEntity):
-    """Defines a Bambu sensor entity."""
+class BambuLabSensor(SensorEntity):
+    """Representation of a BambuLab that is updated via MQTT."""
 
-    entity_description: BambuSensorEntityDescription
+    entity_description: BambuLabSensorEntityDescription
 
     def __init__(
-            self,
-            coordinator: BambuCoordinator,
-            description: BambuSensorEntityDescription,
+            self, description: BambuLabSensorEntityDescription, config_entry: ConfigEntry
     ) -> None:
-        """Initialize a Bambu sensor entity."""
-        super().__init__(coordinator=coordinator)
+        """Initialize the sensor."""
         self.entity_description = description
-        # TODO: Set unique key - use serial number 
-        self._attr_unique_id = f"12:e9:f1:dz:e6:69_{description.key}"
+
+        slug = slugify(description.key.replace("/", "_"))
+        self.entity_id = f"sensor.{slug}"
+        self._attr_unique_id = f"{config_entry.entry_id}-{slug}"
 
     @property
-    def should_poll(self):
-        return False
+    def device_info(self) -> DeviceInfo:
+        """Return the device info."""
+        return DeviceInfo(
+            identifiers={
+                (DOMAIN, "testing_123123")
+            },
+            name="Change This",
+            manufacturer="Bambu Lab",
+        )
 
-    @property
-    def native_value(self) -> datetime | StateType:
-        """Return the state of the sensor."""
-        return self.entity_description.value_fn(self.coordinator.data)
+    async def async_added_to_hass(self) -> None:
+        """Subscribe to MQTT events."""
+
+        def value_of(data, location):
+            for part in location.split("."):
+                data = data.get(part)
+                if not data:
+                    return None
+            return data
+
+        @callback
+        def message_received(message):
+            """Handle new MQTT messages."""
+
+            json_data = json.loads(message.payload)
+
+            if json_data.get("print"):
+                LOGGER.debug(value_of(json_data, self.entity_description.key))
+                if self.entity_description.state is not None:
+                    self._attr_native_value = self.entity_description.state(value_of(json_data, self.entity_description.key))
+                else:
+                    self._attr_native_value = value_of(json_data, self.entity_description.key)
+
+                self.async_write_ha_state()
+
+        """ For now, manually add your device serial number below"""
+        await mqtt.async_subscribe(
+            self.hass, "device/abc123/report", message_received, 1
+        )
