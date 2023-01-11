@@ -34,11 +34,13 @@ def to_whole(number):
         return 0
     return round(number)
 
+def temp_as_string(value):
+    return round(int(value))
+
 
 @dataclass
 class BambuLabSensorEntityDescription(SensorEntityDescription):
     """Sensor entity description for Bambu Lab."""
-
     state: Callable | None = None
 
 
@@ -123,6 +125,25 @@ SENSORS: tuple[BambuLabSensorEntityDescription, ...] = (
         device_class=SensorDeviceClass.SPEED,
         state_class=SensorStateClass.MEASUREMENT,
         state=fan_to_percent
-    )
-
+    ),
+    BambuLabSensorEntityDescription(
+            key="print.heatbreak_fan_speed",
+            name="Heatbreak Fan Speed",
+            native_unit_of_measurement=PERCENTAGE,
+            device_class=SensorDeviceClass.SPEED,
+            state_class=SensorStateClass.MEASUREMENT,
+            state=fan_to_percent
+        )
 )
+
+
+# AMS_SENSORS: tuple[BambuLabSensorEntityDescription, ...] = (
+#     BambuLabSensorEntityDescription(
+#         key=["print", "ams", "ams", 0, "temp"],
+#         name="Wi-Fi Signal",
+#         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+#         device_class=SensorDeviceClass.TEMPERATURE,
+#         state_class=SensorStateClass.MEASUREMENT,
+#         state=temp_as_string
+#     ),
+# )
