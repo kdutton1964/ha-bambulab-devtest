@@ -6,6 +6,8 @@
   "documentation": "https://github.com/greghesp/ha-bambulab",
   "issue_tracker": "https://github.com/greghesp/ha-bambulab/issues",
   "codeowners": ["@greghesp"],
-  "iot_class": "local_push"
+  "iot_class": "local_push",
+  "dependencies": ["mqtt"],
+  "mqtt": ["device/#"],
 }
 
