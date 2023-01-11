@@ -9,8 +9,17 @@ This is a working repo for a Bambu Lab X1C Integration into Home Assistant.  It 
 3) Clone your fork into the `bambu_lab` folder: `git clone <url> .`
 4) Edit [this line](https://github.com/greghesp/ha-bambulab-devtest/blob/main/sensor.py#L80) with your device serial number from MQTT
 
-## Updates
+## Requirements
 
-* Initial configuration flow is functionally working.  `pybambu` is local to this project for now, but this needs to expose the device serial number, so that it can be passed to the unique ID of the Home Assistant Entity
-* Only creating a WiFi Signal sensor at the moment until the data can be passed to HA
-* Coordinator does not currently get data or return to HA
+You will need to setup MQTT bridging on your existing MQTT broker.
+To do this, edit the `mosquitto.conf` file in your broker and add the following:
+
+```connection bambux1c
+address 192.168.1.64:1883
+topic device/# in
+topic device/# out
+try_private false
+```
+
+If you then open up something like MQTT Explorer and connect to your MQTT Broker, you will see the `device` topic where you can grab the serial number.
+A more indepth guide to setup MQTT Bridging for Home Assistant can be found here: https://hackmd.io/@phdunimed/mqttbridging
